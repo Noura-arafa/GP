@@ -14,7 +14,7 @@ def readImagesFromfile(filename, num_frames, clipnumber):
     Img=[]
     for i in range(num_frames):
         framenumber="frame"+str(i)+".jpg"
-        im = Image.open(filename+framenumber).convert('LA')
+        im = Image.open(filename+framenumber).c5onvert('LA')
         im.save('greyscale'+str(clipnumber) +str(i) + '.png')
         im=cv2.imread('greyscale'+str(clipnumber)+str(i)+'.png', 0)
         im = cv2.resize(im, (100, 100))
@@ -59,10 +59,26 @@ def LSTMmodel(number_Frames,batch_x,batch_y):
         los = sess.run(loss, feed_dict={x: batch_x, y: batch_y})
     return correct_prediction,acc,los
 
+def clipsFixedsize(allClips):
+    #print(len(allClips))
+    fixedClipsize=[]
+    longestLen=len(max(allClips,key=len))
+    for clip in allClips:
+        if(len(clip)<longestLen):
+            diff=longestLen-len(clip)
+            iter=0
+            while iter < diff :
+                clip.append(0)
+                iter+=1
+            fixedClipsize.append(clip)
+        else:
+            fixedClipsize.append(clip)
+    return fixedClipsize
+
+
 
 n_input = 10000
-batchsize = 1
-b_size = 10
+batchsize = 2
 Clip1=readImagesFromfile("C:\\Users\\hassan ali\\Downloads\\python-projects\\Imagerecognition\\clip1\\",80,1)
 Clip1 = list(itertools.chain.from_iterable(Clip1))
 Clip2=readImagesFromfile("C:\\Users\\hassan ali\\Downloads\\python-projects\\Imagerecognition\\clip2\\",88,2)
@@ -86,25 +102,26 @@ while iter1<1:
     _x=[]
     while iter2<batchsize:
        # print('image size ', len(ImagesPixelsarray), ' iter2 ' , iter2)
-        print("the Clip",Clips[iter2])
+        #print("the Clip",Clips[iter2])
         _x.append(Clips[iter2])
         iter2+=1
     batchsize+=1
-    print("X",_x)
+    #print("X",_x)
+    _x=clipsFixedsize(_x)
+   # print(len(_x[0]))
+    #print(len(_x[1]))
     batch_x= np.array([np.array(xi) for xi in _x])
-    print('batch numpy array',batch_x)
+    #print('batch numpy array',batch_x)
+    print('batch x[0]',len(batch_x[0]))
+    print('batch x[1]',len(batch_x[1]))
     if(iter1==0):
-        number_Frames=80
-    elif (iter1==1):
         number_Frames=88
-    elif (iter1==2):
-        number_Frames=68
     else:
         number_Frames=68
 
-    batch_x = batch_x.reshape((1, number_Frames, n_input))
+    batch_x = batch_x.reshape((batchsize-1, number_Frames, n_input))
     #batch size
-    n = 1
+    n = 2
     _y = np.c_[np.random.randint(0, 2, (n))]
     batch_y=np.array([np.array(yi) for yi in _y])
     correct_prediction,acc,los = LSTMmodel(number_Frames, batch_x, batch_y)
@@ -112,5 +129,5 @@ while iter1<1:
          print("For iter ", iter1)
          print("Accuracy ", acc)
          print("Loss ", los)
-         print("__________________")
+         
     iter1+=1
