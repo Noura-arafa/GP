@@ -1,0 +1,14 @@
+dance	4
+dress/put-on-clothing	26
+hit	34
+kick	35
+shoot	52
+smoke	54
+stir	55
+turn(e.g., a screwdriver)	60
+fight/hit(a person)	64
+grab(a person)	66
+hug(a person)	70
+kick(a person)	71
+kiss(a person)	72
+push(another person)	76

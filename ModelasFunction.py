@@ -13,6 +13,10 @@ types = str, int, int
 with open("data.txt", "r") as inputfile:
     data = [tuple(t(e) for t,e in zip(types, line.split()))
                 for line in inputfile.readlines()]
+bad_labels = []
+with open("labels.txt") as f:
+    bad_labels = [int(x) for x in f.read().split()]
+
 
 def readImagesFromfile(filename, num_frames):
     i=0;
@@ -65,21 +69,33 @@ def LSTMmodel(number_Frames,batch_x,batch_y):
         los = sess.run(loss, feed_dict={x: batch_x, y: batch_y})
     return correct_prediction,acc,los
 
-
-
+def clipsFixedsize(allClips):
+    #print(len(allClips))
+    fixedClipsize=[]
+    longestLen=len(max(allClips,key=len))
+    for clip in allClips:
+        if(len(clip)<longestLen):
+            diff=longestLen-len(clip)
+            iter=0
+            while iter < diff :
+                clip.append(0)
+                iter+=1
+            fixedClipsize.append(clip)
+        else:
+            fixedClipsize.append(clip)
+    return fixedClipsize,longestLen
 
 
 n_input = 10000
-batchsize = 1
-b_size = 10
+batchsize = 2
 Clips=[]
 labels= []
 #read clip frames and then convert it to 1d array and put it in clips array
 #get num-frames in the specified folder
 for x in data:
-    num_frames = [f for f in listdir("clips\\"+x[0]+","+str(x[1])) if
-                 isfile(join("clips\\"+x[0]+","+str(x[1]), f))]
-    Clip=readImagesFromfile("clips\\"+x[0]+","+str(x[1]), num_frames)
+    num_frames = [f for f in listdir("Clips\\Frames\\"+x[0]+","+str(x[1])) if
+                 isfile(join("Clips\\Frames\\"+x[0]+","+str(x[1]), f))]
+    Clip=readImagesFromfile("Clips\\Frames\\"+x[0]+","+str(x[1]), num_frames)
     Clip = list(itertools.chain.from_iterable(Clip1))
     Clips.append(Clip)
     labels.append(x[1])
@@ -93,30 +109,23 @@ while iter1<1:
     _label= []
     while iter2<batchsize:
        # print('image size ', len(ImagesPixelsarray), ' iter2 ' , iter2)
-        print("the Clip",Clips[iter2])
+        #print("the Clip",Clips[iter2])
         _x.append(Clips[iter2])
         _label.append(labels[iter2])
     iter2+=1
     batchsize+=1
     print("X",_x)
+    #make number of frames of that batch fixed
+    _x, number_Frames = clipsFixedsize(_x)
     #convert x and y to numpy array so it will work with lstm
     batch_x= np.array([np.array(xi) for xi in _x])
     batch_y= np.array([np.array(yi) for yi in _label])
     print('batch numpy array',batch_x)
-    if(iter1==0):
-        number_Frames=80
-    elif (iter1==1):
-        number_Frames=88
-    elif (iter1==2):
-        number_Frames=68
-    else:
-        number_Frames=68
-
-    batch_x = batch_x.reshape((1, number_Frames, n_input))
+    batch_x = batch_x.reshape((batchsize-1, number_Frames, n_input))
     correct_prediction,acc,los = LSTMmodel(number_Frames, batch_x, batch_y)
     if iter1 %2==0:
          print("For iter ", iter1)
          print("Accuracy ", acc)
          print("Loss ", los)
-         print("__________________")
+
     iter1+=1
