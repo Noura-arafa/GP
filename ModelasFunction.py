@@ -6,17 +6,23 @@ import numpy as np
 from PIL import Image
 import cv2
 import itertools
+from os import listdir
+from os.path import isfile, join
 
+types = str, int, int
+with open("data.txt", "r") as inputfile:
+    data = [tuple(t(e) for t,e in zip(types, line.split()))
+                for line in inputfile.readlines()]
 
-def readImagesFromfile(filename, num_frames, clipnumber):
+def readImagesFromfile(filename, num_frames):
     i=0;
     inputImages =[]
     Img=[]
     for i in range(num_frames):
         framenumber="frame"+str(i)+".jpg"
         im = Image.open(filename+framenumber).convert('LA')
-        im.save('greyscale'+str(clipnumber) +str(i) + '.png')
-        im=cv2.imread('greyscale'+str(clipnumber)+str(i)+'.png', 0)
+        im.save('greyscale'+str(i) + '.png')
+        im=cv2.imread('greyscale'+str(i)+'.png', 0)
         im = cv2.resize(im, (100, 100))
         z = np.hstack(im)
         inputImages.append(z)
@@ -60,38 +66,42 @@ def LSTMmodel(number_Frames,batch_x,batch_y):
     return correct_prediction,acc,los
 
 
+
+
+
 n_input = 10000
 batchsize = 1
 b_size = 10
-Clip1=readImagesFromfile("C:\\Users\\hassan ali\\Downloads\\python-projects\\Imagerecognition\\clip1\\",80,1)
-Clip1 = list(itertools.chain.from_iterable(Clip1))
-Clip2=readImagesFromfile("C:\\Users\\hassan ali\\Downloads\\python-projects\\Imagerecognition\\clip2\\",88,2)
-Clip2 = list(itertools.chain.from_iterable(Clip2))
-Clip3=readImagesFromfile("C:\\Users\\hassan ali\\Downloads\\python-projects\\Imagerecognition\\clip3\\",68,3)
-Clip3 = list(itertools.chain.from_iterable(Clip3))
-Clip4=readImagesFromfile("C:\\Users\\hassan ali\\Downloads\\python-projects\\Imagerecognition\\clip4\\",68,4)
-Clip4 = list(itertools.chain.from_iterable(Clip4))
 Clips=[]
-Clips.append(Clip1)
-Clips.append(Clip2)
-Clips.append(Clip3)
-Clips.append(Clip4)
-init=tf.global_variables_initializer()
+labels= []
+#read clip frames and then convert it to 1d array and put it in clips array
+#get num-frames in the specified folder
+for x in data:
+    num_frames = [f for f in listdir("clips\\"+x[0]+","+str(x[1])) if
+                 isfile(join("clips\\"+x[0]+","+str(x[1]), f))]
+    Clip=readImagesFromfile("clips\\"+x[0]+","+str(x[1]), num_frames)
+    Clip = list(itertools.chain.from_iterable(Clip1))
+    Clips.append(Clip)
+    labels.append(x[1])
 
-
+init= tf.global_variables_initializer()
 iter1 = 0
 iter2 = 0
 while iter1<1:
     batch_x=[]
-    _x=[]
+    _x= []
+    _label= []
     while iter2<batchsize:
        # print('image size ', len(ImagesPixelsarray), ' iter2 ' , iter2)
         print("the Clip",Clips[iter2])
         _x.append(Clips[iter2])
-        iter2+=1
+        _label.append(labels[iter2])
+    iter2+=1
     batchsize+=1
     print("X",_x)
+    #convert x and y to numpy array so it will work with lstm
     batch_x= np.array([np.array(xi) for xi in _x])
+    batch_y= np.array([np.array(yi) for yi in _label])
     print('batch numpy array',batch_x)
     if(iter1==0):
         number_Frames=80
@@ -103,10 +113,6 @@ while iter1<1:
         number_Frames=68
 
     batch_x = batch_x.reshape((1, number_Frames, n_input))
-    #batch size
-    n = 1
-    _y = np.c_[np.random.randint(0, 2, (n))]
-    batch_y=np.array([np.array(yi) for yi in _y])
     correct_prediction,acc,los = LSTMmodel(number_Frames, batch_x, batch_y)
     if iter1 %2==0:
          print("For iter ", iter1)
