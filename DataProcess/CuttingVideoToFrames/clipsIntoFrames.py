@@ -4,11 +4,11 @@ import os
 
 types = str, int
 #al input 1 dah al folder ely feh al clips we odmha al tipme stamp
-with open("input1.txt", "r") as inputfile:
+with open("oneMovie.txt", "r") as inputfile:
     data = [tuple(t(e) for t,e in zip(types, line.split()))
                 for line in inputfile]
 print(data)
-clip_FolderName = "E:\FourthYear\\3-GP\\GP-Git\\Clips\\Clips\\"
+clip_FolderName = "E:\FourthYear\\3-GP\\GP-Git\\Clips\\AllClips\\"
 frames_FolderName = "E:\FourthYear\\3-GP\\GP-Git\\Clips\\Frames\\"
 
 for x in data:

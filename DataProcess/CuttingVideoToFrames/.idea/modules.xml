@@ -3,6 +3,8 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/CuttingVideoToFrames.iml" filepath="$PROJECT_DIR$/.idea/CuttingVideoToFrames.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../.idea/Imagerecognition.iml" filepath="$PROJECT_DIR$/../../.idea/Imagerecognition.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../../UnSupervised CNN/.idea/UnSupervised CNN.iml" filepath="$PROJECT_DIR$/../../../UnSupervised CNN/.idea/UnSupervised CNN.iml" />
     </modules>
   </component>
 </project>
